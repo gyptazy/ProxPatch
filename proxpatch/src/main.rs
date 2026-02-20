@@ -1,5 +1,6 @@
 mod calculations;
 mod cli;
+mod config;
 mod helpers;
 mod migrate;
 mod models;
@@ -10,6 +11,7 @@ mod vms;
 use clap::Parser;
 use cli::Cli;
 use crate::calculations::calculate_migrations;
+use crate::config::load_config;
 use crate::helpers::node_ssh_target;
 use crate::helpers::test_pkg_jq;
 use crate::migrate::exec_migrate;
@@ -23,11 +25,16 @@ use std::collections::HashMap;
 use vms::get_running_vms;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    test_pkg_jq();
     let cli = Cli::parse();
+    let config = if let Some(path) = cli.config.as_deref() {
+        Some(load_config(path)?)
+    } else {
+        None
+    };
+    let user = config.as_ref().map_or("root", |c| c.ssh_user.as_str());
     let nodes = get_nodes(cli.debug)?;
     let mut cluster: HashMap<String, NodeWithVms> = HashMap::new();
-
-    test_pkg_jq();
 
     for node in nodes {
         let node_name = node.node.clone();
@@ -44,9 +51,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for (node_name, data) in cluster.iter_mut() {
         let ssh_target = data.resources.ip.as_deref().unwrap_or(node_name);
-
-        exec_upgrade(ssh_target)?;
-        data.resources.reboot_required = val_reboot(ssh_target)?;
+        exec_upgrade(user, ssh_target)?;
+        data.resources.reboot_required = val_reboot(user, ssh_target)?;
     }
 
     let plans = calculate_migrations(&cluster);
@@ -58,6 +64,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap_or(&plan.from);
 
         exec_migrate(
+            user,
             from_ip,
             &plan.from,
             &plan.to,
@@ -70,11 +77,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if !data.resources.reboot_required {
             continue;
         }
-
         let ssh_target = data.resources.ip.as_deref().unwrap_or(node_name);
-
         println!("Rebooting {}", ssh_target);
-        exec_reboot(ssh_target)?;
+        exec_reboot(user, ssh_target)?;
     }
 
     Ok(())

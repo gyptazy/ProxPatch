@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fs;
+use std::process;
 use crate::models::NodeWithVms;
 
 pub fn node_ssh_target<'a>(
@@ -12,13 +13,13 @@ pub fn node_ssh_target<'a>(
         .unwrap_or(node)
 }
 
-    match fs::metadata("/tmp/test.txt") {
+pub fn test_pkg_jq() {
+    match fs::metadata("/usr/bin/jq") {
         Ok(metadata) => {
-            if metadata.is_file() {
-                println!("File exists");
-            }
         }
         Err(e) => {
-            println!("File not found: {}", e);
+            eprintln!("Error: jq is not installed. Please install jq to use this ProxPatch.");
+            process::exit(2);
         }
     }
+}
