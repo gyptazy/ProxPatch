@@ -4,6 +4,9 @@
 
 <p float="center"><img src="https://img.shields.io/github/license/gyptazy/ProxPatch"/><img src="https://img.shields.io/github/contributors/gyptazy/ProxPatch"/><img src="https://img.shields.io/github/last-commit/gyptazy/ProxPatch/main"/><img src="https://img.shields.io/github/issues-raw/gyptazy/ProxPatch"/><img src="https://img.shields.io/github/issues-pr/gyptazy/ProxPatch"/></p>
 
+
+# WORK IN PROGRESS - DO NOT USE IN PROD YET!!
+
 **ProxPatch** (written by [gyptazy](https://gyptazy.com/proxpatch/)) is a lightweight, automation-first patch orchestration tool for Proxmox VE clusters. It performs **rolling security updates** across nodes, safely migrates running VMs, reboots when required, and keeps cluster downtime to a minimum.
 
 The design goal is simple:
