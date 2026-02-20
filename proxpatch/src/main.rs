@@ -1,5 +1,6 @@
 mod calculations;
 mod cli;
+mod cluster;
 mod config;
 mod helpers;
 mod migrate;
@@ -12,6 +13,7 @@ use clap::Parser;
 use cli::Cli;
 use crate::calculations::calculate_migrations;
 use crate::config::load_config;
+use crate::cluster::val_cluster_status;
 use crate::helpers::node_ssh_target;
 use crate::helpers::test_pkg_jq;
 use crate::migrate::exec_migrate;
@@ -77,9 +79,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if !data.resources.reboot_required {
             continue;
         }
+
+        std::thread::sleep(std::time::Duration::from_secs(5));
+        if !val_cluster_status(cli.debug)? {
+            return Err(format!("Error: Cluster became unhealthy. Not rebooting node {}. Waiting for next patch cycle iteration.", node_name).into());
+        }
+
         let ssh_target = data.resources.ip.as_deref().unwrap_or(node_name);
         println!("Rebooting {}", ssh_target);
         exec_reboot(user, ssh_target)?;
+        std::thread::sleep(std::time::Duration::from_secs(5));
     }
 
     Ok(())
