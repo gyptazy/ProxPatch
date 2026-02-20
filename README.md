@@ -143,10 +143,74 @@ You can also download and install the latest Debian package directly from the gy
 * https://cdn.gyptazy.com/debian/proxpatch/
 
 ## Configuration
+ProxPatch is designed to work out of the box with minimal setup. In most environments, **no configuration is required**.
+
+- ProxPatch only needs to be installed on **one** Proxmox VE node per cluster.
+- From that node, it automatically discovers all other nodes in the cluster and orchestrates patching, migrations, and reboots remotely.
+
+By default, ProxPatch uses the authentication and SSH trust that already exists in a standard Proxmox cluster setup:
+
+- Uses the cluster’s existing SSH keys and trust relationships  
+- Connects to other nodes as **`root`**  
+- Executes:
+  - package updates  
+  - system upgrades  
+  - reboots  
+- Automatically gathers all nodes in the cluster  
+- No configuration file is required for standard Proxmox installations  
+
+If your cluster was created normally, you can run ProxPatch immediately after installing it.
+
+You can optionally create a configuration file to use a different SSH user instead of `root`:
+
+```yaml /etc/proxpatch/proxpatch.yaml
+ssh_user: proxpatch
+```
+
+If ssh_user is defined:
+* ProxPatch will SSH into other nodes using that user
+* All commands will be executed via sudo
+
+The user must have:
+* Passwordless sudo privileges
+* Be able to SSH to all cluster node
+
+Example suodoers entry for a custom user named `proxpatch`:
+
+```
+# Allow proxpatch to run required Proxmox patch commands without password
+
+User_Alias PROXPATCH = proxpatch
+
+Cmnd_Alias PROXPATCH_CMDS = \
+    /usr/bin/pvesh create *, \
+    /usr/bin/apt-get update, \
+    /usr/bin/apt-get dist-upgrade, \
+    /usr/bin/apt-get -y dist-upgrade, \
+    /usr/sbin/reboot, \
+    /sbin/reboot
+
+PROXPATCH ALL=(root) NOPASSWD: PROXPATCH_CMDS
+```
 
 ## Options
+| Setting      | Default  | Required | Description                      |
+| ------------ | -------- | -------- | -------------------------------- |
+| -d  | None     | No       | Run in debug mode      |
+| -c    | None     | No       | Define custom configuration file path    |
+
 
 ## Usage
+ProxPatch is designed to run fully automated rolling updates across your Proxmox VE cluster. To begin the rolling upgrade process, simply enable and start the provided systemd unit:
+
+```bash
+systemctl enable proxpatch
+systemctl start proxpatch
+```
+
+> [!CAUTION]
+> ProxPatch must run on exactly one node per cluster.
+Do not enable or start the proxpatch service on multiple nodes simultaneously.
 
 ## Building
 
