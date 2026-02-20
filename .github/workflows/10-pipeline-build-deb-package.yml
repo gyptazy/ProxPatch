@@ -1,0 +1,58 @@
+name: Build proxpatch .deb package
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-deb:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools pkg-config
+
+      - name: Install Rust (rustup)
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: rustfmt
+
+      - name: Add musl target
+        run: |
+          rustup target add x86_64-unknown-linux-musl
+
+      - name: Build static binary (musl)
+        run: |
+          cd proxpatch && cargo build --release --target x86_64-unknown-linux-musl
+
+      - name: Extract version from Cargo.toml
+        id: version
+        run: |
+          VERSION=$(grep '^version' Cargo.toml | head -n1 | cut -d '"' -f2)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build Debian package
+        run: |
+          PKG=proxpatch
+          VERSION=${{ steps.version.outputs.version }}
+          ARCH=amd64
+          sudo apt-get update &&\
+          sudo apt-get -y install build-essential debhelper-compat rustc cargo &&\
+          dpkg-buildpackage &&\
+          mkdir package &&\
+          mv ../*.deb package/ &&\
+          echo 'OK: Debian package successfully created.'
+
+      - name: Upload Debian package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: proxpatch-deb
+          path: package/*.deb
+

@@ -1,0 +1,13 @@
+Source: proxpatch
+Maintainer: Florian Paul Azim Hoberg <gyptazy@gyptazy.com>
+Section: admin
+Priority: optional
+Standards-Version: 4.6.2
+Build-Depends: debhelper-compat (= 13), rustc, cargo
+Rules-Requires-Root: no
+
+Package: proxpatch
+Architecture: amd64
+Depends: ${misc:Depends}, sudo, jq
+Description: An automated rolling patch manager for Proxmox clusters
+ ProxPatch is a Rust based tool for Proxmox VE clusters that provides an automated rolling patch management for Proxmox clusters.
