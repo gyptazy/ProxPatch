@@ -1,12 +1,18 @@
 use std::process::{Command, Stdio};
 
-pub fn exec_upgrade(node: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn exec_upgrade(user: &str, node: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let remote_cmd = if user == "root" {
+        String::from("apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade")
+    } else {
+        String::from("sudo apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade")
+    };
+
     let output = Command::new("ssh")
         .args([
             "-o", "StrictHostKeyChecking=accept-new",
             "-o", "BatchMode=yes",
-            &format!("root@{}", node),
-            "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade",
+            &format!("{}@{}", user, node),
+            &remote_cmd,
         ])
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -21,13 +27,19 @@ pub fn exec_upgrade(node: &str) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-pub fn exec_reboot(node: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn exec_reboot(user: &str, node: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let remote_cmd = if user == "root" {
+        String::from("reboot")
+    } else {
+        String::from("sudo reboot")
+    };
+
     let output = Command::new("ssh")
         .args([
             "-o", "StrictHostKeyChecking=accept-new",
             "-o", "BatchMode=yes",
-            &format!("root@{}", node),
-            "reboot",
+            &format!("{}@{}", user, node),
+            &remote_cmd,
         ])
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -42,12 +54,12 @@ pub fn exec_reboot(node: &str) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-pub fn val_reboot(node: &str) -> Result<bool, Box<dyn std::error::Error>> {
+pub fn val_reboot(user: &str,node: &str) -> Result<bool, Box<dyn std::error::Error>> {
     let output = Command::new("ssh")
         .args([
             "-o", "StrictHostKeyChecking=accept-new",
             "-o", "BatchMode=yes",
-            &format!("root@{}", node),
+            &format!("{}@{}", user, node),
             "test -f /var/run/reboot-required",
         ])
         .stdout(Stdio::null())

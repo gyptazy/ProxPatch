@@ -1,6 +1,11 @@
 use serde::Deserialize;
 use std::process::Command;
 
+#[derive(Debug, Deserialize)]
+pub struct Config {
+    pub ssh_user: String,
+}
+
 #[derive(Debug, Deserialize, Clone)]
 pub struct NodeResources {
     pub node: String,
