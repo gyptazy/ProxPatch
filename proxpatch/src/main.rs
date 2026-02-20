@@ -11,6 +11,7 @@ use clap::Parser;
 use cli::Cli;
 use crate::calculations::calculate_migrations;
 use crate::helpers::node_ssh_target;
+use crate::helpers::test_pkg_jq;
 use crate::migrate::exec_migrate;
 use crate::models::MigrationPlan;
 use crate::patch::exec_reboot;
@@ -25,6 +26,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     let nodes = get_nodes(cli.debug)?;
     let mut cluster: HashMap<String, NodeWithVms> = HashMap::new();
+
+    test_pkg_jq();
 
     for node in nodes {
         let node_name = node.node.clone();

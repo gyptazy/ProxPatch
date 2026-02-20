@@ -35,6 +35,8 @@ ProxPatch is designed to run inside or alongside a Proxmox VE cluster and relies
     * Cluster must maintain quorum during patching
     * Shared storage (e.g. Ceph, NFS) for live migration
 * SSH access to all cluster nodes (passwordless key-based authentication recommended)
+* `sudo` Package on all nodes for applying updates and rebooting
+* `jq` on the machine running ProxPatch for JSON parsing
 
 ## Architecture
 
@@ -136,6 +138,10 @@ apt-get install -y proxpatch
 
 ### Debian Packages
 
+You can also download and install the latest Debian package directly from the gyptazy CDN:
+
+* https://cdn.gyptazy.com/debian/proxpatch/
+
 ## Configuration
 
 ## Options
@@ -177,4 +183,4 @@ Clear and detailed reports help us improve ProxPatch faster and more efficiently
 * [Florian Paul Azim Hoberg (gyptazy)](https://gyptazy.com/proxpatch/)
 
 ## Disclaimer
-This software is provided “as is”, without warranty of any kind. Use it at your own risk.The authors and contributors are not liable for any damages resulting from its use.
+This software is provided “as is”, without warranty of any kind. Use it at your own risk. The authors and contributors are not liable for any damages resulting from its use.
