@@ -1,4 +1,5 @@
 use std::process::{Command, Stdio};
+use log::{info, debug, warn, error};
 
 pub fn exec_migrate(
     user: &str,
@@ -7,6 +8,8 @@ pub fn exec_migrate(
     target_node: &str,
     guest_id: u64,
 ) -> Result<(), Box<dyn std::error::Error>> {
+
+    debug!("Start migrating VM {} from {} to {}", guest_id, current_node, target_node);
 
     let base_cmd = format!(
         "pvesh create /nodes/{}/qemu/{}/migrate -target {} -online 1 -with-local-disks 1",
@@ -37,5 +40,6 @@ pub fn exec_migrate(
         ).into());
     }
 
+    debug!("Successfully migrated VM {} from {} to {}", guest_id, current_node, target_node);
     Ok(())
 }

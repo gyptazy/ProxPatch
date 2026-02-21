@@ -1,8 +1,9 @@
 use std::process::Command;
 use crate::models::{NodeResources, NodeStatus};
 use crate::cluster::PveResource;
+use log::{info, debug, warn, error};
 
-pub fn get_nodes(debug: bool) -> Result<Vec<NodeResources>, Box<dyn std::error::Error>> {
+pub fn get_nodes() -> Result<Vec<NodeResources>, Box<dyn std::error::Error>> {
     let output = Command::new("pvesh")
         .args([
             "get",
@@ -18,15 +19,13 @@ pub fn get_nodes(debug: bool) -> Result<Vec<NodeResources>, Box<dyn std::error::
     let mut nodes: Vec<NodeResources> = serde_json::from_str(&json)?;
 
     for node in &mut nodes {
-        node.ip = get_node_ip(debug, &node.node);
-        if debug {
-            println!("[DEBUG] AAA node: {}, IP: {:?}", node.node, node.ip);
-        }
+        node.ip = get_node_ip(&node.node);
+
     }
     Ok(nodes)
 }
 
-fn get_node_ip(debug: bool, node: &str) -> Option<String> {
+fn get_node_ip(node: &str) -> Option<String> {
     let output = Command::new("pvesh")
         .args([
             "get",
@@ -38,10 +37,6 @@ fn get_node_ip(debug: bool, node: &str) -> Option<String> {
         .ok()?;
 
     let json = String::from_utf8(output.stdout).ok()?;
-
-    if debug {
-        println!("[DEBUG] raw /cluster/status json: {}", json);
-    }
 
     #[derive(serde::Deserialize)]
     struct ClusterEntry {
@@ -59,15 +54,11 @@ fn get_node_ip(debug: bool, node: &str) -> Option<String> {
                 if name == node {
                     match entry.ip {
                         Some(ip) => {
-                            if debug {
-                                println!("[DEBUG] node {} IP detected: {}", node, ip);
-                            }
+                            debug!("Node {} IP detected: {}", node, ip);
                             return Some(ip);
                         }
                         None => {
-                            if debug {
-                                println!("[DEBUG] node {} found but has no IP", node);
-                            }
+                            debug!("Node {} found but has no IP", node);
                             return None;
                         }
                     }
@@ -75,15 +66,13 @@ fn get_node_ip(debug: bool, node: &str) -> Option<String> {
             }
         }
     }
-    if debug {
-        println!("[DEBUG] node {} not found in cluster/status", node);
-    }
+
+    debug!("Node {} not found in cluster/status", node);
     None
 }
 
 pub fn val_node_online(
     node_name: &str,
-    debug: bool,
 ) -> Result<bool, Box<dyn std::error::Error>> {
     let output = Command::new("pvesh")
         .args([
@@ -97,48 +86,36 @@ pub fn val_node_online(
     let json = String::from_utf8(output.stdout)?;
     let resources: Vec<PveResource> = serde_json::from_str(&json)?;
 
-    if debug {
-        println!("[DEBUG] Checking node: {}", node_name);
-    }
-
     for res in resources {
         if let PveResource::Node { node, status } = res {
             if node == node_name {
                 let online = status == "online";
-
-                if debug {
-                    println!(
-                        "[DEBUG] Found node {}, status: {}, online: {}",
-                        node, status, online
-                    );
-                }
-
-                println!("Reboot completed on node: {}", node_name);
+                debug!("Node {} status: {}, online: {}", node, status, online);
+                debug!("Reboot completed on node: {}", node_name);
                 return Ok(online);
             }
         }
     }
 
-    if debug {
-        println!("[DEBUG] Node {} not found in cluster resources", node_name);
-    }
-
+    debug!("Node {} not found in cluster resources", node_name);
     Ok(false)
 }
 
 pub fn wait_for_node_online(
     node_name: &str,
     timeout_secs: u64,
-    debug: bool,
 ) -> Result<bool, Box<dyn std::error::Error>> {
     let attempts = timeout_secs / 5;
 
     for _ in 0..attempts {
-        if val_node_online(node_name, debug)? {
+        debug!("Checking if node {} is online...", node_name);
+
+        if val_node_online(node_name)? {
+            debug!("Node {} is now online", node_name);
             return Ok(true);
         }
 
-        println!("[DEBUG] Still waiting for node {} to come online", node_name);
+        debug!("Waiting for node {} to come online...", node_name);
         std::thread::sleep(std::time::Duration::from_secs(5));
     }
 

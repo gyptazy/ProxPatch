@@ -1,10 +1,10 @@
 use std::process::Command;
 use crate::models::VmResources;
+use log::{info, debug, warn, error};
 
-pub fn get_running_vms(debug: bool, node: &str) -> Result<Vec<VmResources>, Box<dyn std::error::Error>> {
-    if debug {
-        println!("[DEBUG] querying running VMs for node: {}", node);
-    }
+pub fn get_running_vms(node: &str) -> Result<Vec<VmResources>, Box<dyn std::error::Error>> {
+
+    debug!("Querying running VMs for node: {}", node);
 
     let output = Command::new("pvesh")
         .args([
@@ -22,9 +22,8 @@ pub fn get_running_vms(debug: bool, node: &str) -> Result<Vec<VmResources>, Box<
         .filter(|vm| vm.status == "running")
         .collect();
 
-    if debug {
-        println!("VM list: {:#?}", vms);
-    }
+    debug!("Found {} running VMs on node {}", vms.len(), node);
+    debug!("VM details: {:#?}", vms);
 
     Ok(vms)
 }

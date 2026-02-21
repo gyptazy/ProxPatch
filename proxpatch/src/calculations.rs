@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use crate::models::{NodeWithVms, MigrationPlan};
+use log::{info, debug, warn, error};
 
 pub fn calculate_migrations(
     cluster: &HashMap<String, NodeWithVms>,

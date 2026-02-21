@@ -1,4 +1,5 @@
 use std::process::{Command, Stdio};
+use log::{info, debug, warn, error};
 
 pub fn exec_upgrade(user: &str, node: &str) -> Result<(), Box<dyn std::error::Error>> {
     let remote_cmd = if user == "root" {
@@ -19,9 +20,9 @@ pub fn exec_upgrade(user: &str, node: &str) -> Result<(), Box<dyn std::error::Er
         .output()?;
 
     if !output.status.success() {
-        eprintln!("Upgrade failed on {}", node);
+        error!("Upgrade failed on {}", node);
     } else {
-        println!("Upgrade completed on {}", node);
+        info!("Upgrade completed on {}", node);
     }
 
     Ok(())
@@ -46,9 +47,9 @@ pub fn exec_reboot(user: &str, node: &str) -> Result<(), Box<dyn std::error::Err
         .output()?;
 
     if !output.status.success() {
-        eprintln!("Reboot failed on {}", node);
+        error!("Reboot failed on {}", node);
     } else {
-        println!("Rebooting node {}", node);
+        info!("Rebooting node {}", node);
     }
 
     Ok(())
@@ -66,5 +67,13 @@ pub fn val_reboot(user: &str,node: &str) -> Result<bool, Box<dyn std::error::Err
         .stderr(Stdio::null())
         .output()?;
 
-    Ok(output.status.success())
+    let reboot_required = output.status.success();
+
+    if reboot_required {
+        debug!("Reboot required for node: {}", node);
+    } else {
+        debug!("Reboot not required for node: {}", node);
+    }
+
+    Ok(reboot_required)
 }
