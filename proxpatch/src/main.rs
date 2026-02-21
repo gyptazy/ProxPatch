@@ -12,6 +12,8 @@ mod vms;
 use clap::Parser;
 use cli::Cli;
 use crate::calculations::calculate_migrations;
+use crate::calculations::calculate_migrations_for_node;
+use crate::calculations::apply_plan_to_cluster;
 use crate::config::load_config;
 use crate::cluster::val_cluster_status;
 use crate::helpers::node_ssh_target;
@@ -35,6 +37,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else {
         None
     };
+    println!("1111 TEST");
     let user = config.as_ref().map_or("root", |c| c.ssh_user.as_str());
     let nodes = get_nodes(cli.debug)?;
     let mut cluster: HashMap<String, NodeWithVms> = HashMap::new();
@@ -58,46 +61,55 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         data.resources.reboot_required = val_reboot(user, ssh_target)?;
     }
 
-    let plans = calculate_migrations(&cluster);
+    let node_order: Vec<String> = cluster.keys().cloned().collect();
 
-    for (node_name, data) in &cluster {
-        if !data.resources.reboot_required {
+    for node_name in node_order {
+        let reboot_required = cluster
+            .get(&node_name)
+            .map(|d| d.resources.reboot_required)
+            .unwrap_or(false);
+
+        if !reboot_required {
             continue;
         }
 
-        // for plan in plans {
-        //     let from_ip = cluster
-        //         .get(&plan.from)
-        //         .and_then(|d| d.resources.ip.as_deref())
-        //         .unwrap_or(&plan.from);
+        println!("Processing node {}", node_name);
 
-        //     exec_migrate(
-        //         user,
-        //         from_ip,
-        //         &plan.from,
-        //         &plan.to,
-        //         plan.vmid,
-        //     )?;
+        let plans = calculate_migrations_for_node(&node_name, &cluster);
 
-        // }
+        for plan in plans {
+            let from_ip = cluster
+                .get(&plan.from)
+                .and_then(|d| d.resources.ip.as_deref())
+                .unwrap_or(&plan.from);
 
-        std::thread::sleep(std::time::Duration::from_secs(5));
-        if !val_cluster_status(cli.debug)? {
-            return Err(format!("Error: Cluster became unhealthy. Not rebooting node {}. Waiting for next patch cycle iteration.", node_name).into());
+            exec_migrate(user, from_ip, &plan.from, &plan.to, plan.vmid)?;
+
+            apply_plan_to_cluster(&mut cluster, &plan);
         }
 
-        let ssh_target = data.resources.ip.as_deref().unwrap_or(node_name);
-        println!("Rebooting {}", ssh_target);
+        if !val_cluster_status(cli.debug)? {
+            return Err(format!("Cluster unhealthy. Not rebooting {}", node_name).into());
+        }
+
+        let ssh_target = cluster
+            .get(&node_name)
+            .and_then(|d| d.resources.ip.as_deref())
+            .unwrap_or(&node_name);
+
         exec_reboot(user, ssh_target)?;
 
-        // Wait for node to go offline, this can take some time.
         std::thread::sleep(std::time::Duration::from_secs(120));
 
-        if !wait_for_node_online(node_name, 180, cli.debug)? {
+        if !wait_for_node_online(&node_name, 300, cli.debug)? {
             return Err(format!("Node {} failed to rejoin cluster", node_name).into());
         }
 
+        if !val_cluster_status(cli.debug)? {
+            return Err(format!("Cluster unhealthy after reboot of {}", node_name).into());
+        }
     }
 
     Ok(())
+
 }
