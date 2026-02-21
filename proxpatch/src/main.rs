@@ -23,6 +23,7 @@ use crate::patch::exec_upgrade;
 use crate::patch::val_reboot;
 use models::{NodeWithVms};
 use nodes::get_nodes;
+use nodes::wait_for_node_online;
 use std::collections::HashMap;
 use vms::get_running_vms;
 
@@ -59,26 +60,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let plans = calculate_migrations(&cluster);
 
-    for plan in plans {
-        let from_ip = cluster
-            .get(&plan.from)
-            .and_then(|d| d.resources.ip.as_deref())
-            .unwrap_or(&plan.from);
-
-        exec_migrate(
-            user,
-            from_ip,
-            &plan.from,
-            &plan.to,
-            plan.vmid,
-        )?;
-
-    }
-
     for (node_name, data) in &cluster {
         if !data.resources.reboot_required {
             continue;
         }
+
+        // for plan in plans {
+        //     let from_ip = cluster
+        //         .get(&plan.from)
+        //         .and_then(|d| d.resources.ip.as_deref())
+        //         .unwrap_or(&plan.from);
+
+        //     exec_migrate(
+        //         user,
+        //         from_ip,
+        //         &plan.from,
+        //         &plan.to,
+        //         plan.vmid,
+        //     )?;
+
+        // }
 
         std::thread::sleep(std::time::Duration::from_secs(5));
         if !val_cluster_status(cli.debug)? {
@@ -88,7 +89,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let ssh_target = data.resources.ip.as_deref().unwrap_or(node_name);
         println!("Rebooting {}", ssh_target);
         exec_reboot(user, ssh_target)?;
-        std::thread::sleep(std::time::Duration::from_secs(5));
+
+        // Wait for node to go offline, this can take some time.
+        std::thread::sleep(std::time::Duration::from_secs(120));
+
+        if !wait_for_node_online(node_name, 180, cli.debug)? {
+            return Err(format!("Node {} failed to rejoin cluster", node_name).into());
+        }
+
     }
 
     Ok(())

@@ -48,7 +48,7 @@ pub fn exec_reboot(user: &str, node: &str) -> Result<(), Box<dyn std::error::Err
     if !output.status.success() {
         eprintln!("Reboot failed on {}", node);
     } else {
-        println!("Reboot completed on {}", node);
+        println!("Rebooting node {}", node);
     }
 
     Ok(())

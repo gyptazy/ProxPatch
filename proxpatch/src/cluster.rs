@@ -3,7 +3,7 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type")]
-enum PveResource {
+pub enum PveResource {
     #[serde(rename = "node")]
     Node {
         node: String,
