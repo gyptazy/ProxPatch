@@ -26,6 +26,7 @@ pub enum PveResource {
 }
 
 pub fn val_cluster_status() -> Result<bool, Box<dyn std::error::Error>> {
+    debug!("→ Validating cluster status...");
     let output = Command::new("pvesh")
         .args([
             "get",
@@ -38,8 +39,8 @@ pub fn val_cluster_status() -> Result<bool, Box<dyn std::error::Error>> {
     let json = String::from_utf8(output.stdout)?;
     let resources: Vec<PveResource> = serde_json::from_str(&json)?;
 
-    debug!("Cluster resources: {:#?}", resources);
-    debug!("Cluster resources json:: {:#?}", json);
+    debug!("! Cluster resources: {:#?}", resources);
+    debug!("! Cluster resources json:: {:#?}", json);
 
     let mut all_online = true;
 
@@ -47,12 +48,14 @@ pub fn val_cluster_status() -> Result<bool, Box<dyn std::error::Error>> {
         if let PveResource::Node { node, status } = res {
             let online = status == "online";
 
-            debug!("Node: {}, online: {}", node, online);
+            debug!("✓ Validate Node: {}, online: {}", node, online);
 
             if !online {
                 all_online = false;
             }
         }
     }
+
+    debug!("✓ Validated cluster status: {}", all_online);
     Ok(all_online)
 }

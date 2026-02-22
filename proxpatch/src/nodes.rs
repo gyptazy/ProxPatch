@@ -4,6 +4,7 @@ use crate::cluster::PveResource;
 use log::{info, debug, warn, error};
 
 pub fn get_nodes() -> Result<Vec<NodeResources>, Box<dyn std::error::Error>> {
+    debug!("→ Getting list of nodes in cluster...");
     let output = Command::new("pvesh")
         .args([
             "get",
@@ -22,10 +23,13 @@ pub fn get_nodes() -> Result<Vec<NodeResources>, Box<dyn std::error::Error>> {
         node.ip = get_node_ip(&node.node);
 
     }
+    debug!("✓ Successfully retrieved list of nodes in cluster ({} nodes)", nodes.len());
+
     Ok(nodes)
 }
 
 fn get_node_ip(node: &str) -> Option<String> {
+    debug!("→ Getting IP address for node: {}", node);
     let output = Command::new("pvesh")
         .args([
             "get",
@@ -54,11 +58,11 @@ fn get_node_ip(node: &str) -> Option<String> {
                 if name == node {
                     match entry.ip {
                         Some(ip) => {
-                            debug!("Node {} IP detected: {}", node, ip);
+                            debug!("✓ Found node {} with IP: {}", node, ip);
                             return Some(ip);
                         }
                         None => {
-                            debug!("Node {} found but has no IP", node);
+                            debug!("✗ Node {} found but has no IP", node);
                             return None;
                         }
                     }
@@ -67,13 +71,14 @@ fn get_node_ip(node: &str) -> Option<String> {
         }
     }
 
-    debug!("Node {} not found in cluster/status", node);
+    debug!("✗ Node {} not found in cluster", node);
     None
 }
 
 pub fn val_node_online(
     node_name: &str,
 ) -> Result<bool, Box<dyn std::error::Error>> {
+    debug!("→ Validate if node {} is online", node_name);
     let output = Command::new("pvesh")
         .args([
             "get",
@@ -90,14 +95,14 @@ pub fn val_node_online(
         if let PveResource::Node { node, status } = res {
             if node == node_name {
                 let online = status == "online";
-                debug!("Node {} status: {}, online: {}", node, status, online);
-                debug!("Reboot completed on node: {}", node_name);
+                debug!("✓ Node {} status: {}, online: {}", node, status, online);
+                debug!("✓ Reboot completed on node: {}", node_name);
                 return Ok(online);
             }
         }
     }
 
-    debug!("Node {} not found in cluster resources", node_name);
+    debug!("✗ Node {} not found in cluster resources", node_name);
     Ok(false)
 }
 
@@ -108,14 +113,14 @@ pub fn wait_for_node_online(
     let attempts = timeout_secs / 5;
 
     for _ in 0..attempts {
-        debug!("Checking if node {} is online...", node_name);
+        debug!("→ Checking if node {} is online...", node_name);
 
         if val_node_online(node_name)? {
-            debug!("Node {} is now online", node_name);
+            debug!("✓ Node {} is now online", node_name);
             return Ok(true);
         }
 
-        debug!("Waiting for node {} to come online...", node_name);
+        debug!("→ Waiting for node {} to come online...", node_name);
         std::thread::sleep(std::time::Duration::from_secs(5));
     }
 

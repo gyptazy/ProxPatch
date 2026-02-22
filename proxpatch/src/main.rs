@@ -37,17 +37,31 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
     logging::init(cli.debug)?;
-    info!("ProxPatch v{} starting... (https://gyptazy.com/proxpatch/)", VERSION);
+    info!("→ Starting ProxPatch v{}... (https://gyptazy.com/proxpatch/)", VERSION);
 
     test_pkg_jq();
 
+    debug!("→ Validating for custom config file...");
     let config = if let Some(path) = cli.config.as_deref() {
+        debug!("→ Processing custom config file: {}", path);
         Some(load_config(path)?)
     } else {
+        debug!("✓ No custom config file specified. Processing with defaults.");
         None
     };
 
-    let user = config.as_ref().map_or("root", |c| c.ssh_user.as_str());
+    debug!("→ Processing user validation...");
+    let user = config.as_ref().map_or_else(
+        || {
+            debug!("✓ Using user: root");
+            "root"
+        },
+        |c| {
+            debug!("✓ Using user from config: {}", c.ssh_user);
+            c.ssh_user.as_str()
+        },
+    );
+
     let nodes = get_nodes()?;
     let mut cluster: HashMap<String, NodeWithVms> = HashMap::new();
 
@@ -119,7 +133,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    info!("All nodes processed successfully. Cluster is healthy.");
+    info!("✓ All nodes up-to-date. Cluster healthy.");
+    debug!("→ Waiting for next update cycle.");
     Ok(())
 
 }

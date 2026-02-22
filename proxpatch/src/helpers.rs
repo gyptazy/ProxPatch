@@ -16,13 +16,14 @@ pub fn node_ssh_target<'a>(
 }
 
 pub fn test_pkg_jq() {
-    debug!("Testing if jq is installed...");
+    debug!("→ Testing if jq is installed...");
     match fs::metadata("/usr/bin/jq") {
-        Ok(metadata) => {
+        Ok(_) => {
+            debug!("✓ jq is installed and available at /usr/bin/jq");
         }
-        Err(e) => {
-            eprintln!("Error: jq is not installed. Please install jq to use this ProxPatch.");
-            error!("Error: jq is not installed. Please install jq to use this ProxPatch.");
+        Err(_) => {
+            eprintln!("✗ jq is not installed. Please install jq to use this ProxPatch.");
+            error!("✗ jq is not installed. Please install jq to use this ProxPatch.");
             process::exit(2);
         }
     }

@@ -9,7 +9,7 @@ pub fn exec_migrate(
     guest_id: u64,
 ) -> Result<(), Box<dyn std::error::Error>> {
 
-    debug!("Start migrating VM {} from {} to {}", guest_id, current_node, target_node);
+    debug!("→ Starting migration of VM {} from {} to {}", guest_id, current_node, target_node);
 
     let base_cmd = format!(
         "pvesh create /nodes/{}/qemu/{}/migrate -target {} -online 1 -with-local-disks 1",
@@ -35,11 +35,11 @@ pub fn exec_migrate(
 
     if !status.success() {
         return Err(format!(
-            "Migration of VM {} from {} to {} failed",
+            "✗Migration of VM {} from {} to {} failed",
             guest_id, current_node, target_node
         ).into());
     }
 
-    debug!("Successfully migrated VM {} from {} to {}", guest_id, current_node, target_node);
+    debug!("✓Successfully migrated VM {} from {} to {}", guest_id, current_node, target_node);
     Ok(())
 }
