@@ -33,10 +33,26 @@ use models::{NodeWithVms};
 use nodes::get_nodes;
 use nodes::wait_for_node_online;
 use std::collections::HashMap;
+use std::time::Duration;
 use version::VERSION;
 use vms::get_running_vms;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let interval = Duration::from_secs(60 * 60 * 6);
+    let interval_hours = interval.as_secs() / 3600;
+
+    loop {
+        info!("→ Starting scheduled ProxPatch run");
+        if let Err(e) = run_proxpatch() {
+            error!("Run failed: {}", e);
+        }
+
+        info!("→ Waiting for next update cycle in {:?} hours", interval_hours);
+        std::thread::sleep(interval);
+    }
+}
+
+fn run_proxpatch() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
     logging::init(cli.debug)?;
@@ -163,7 +179,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     info!("✓ All nodes up-to-date. Cluster healthy.");
-    debug!("→ Waiting for next update cycle.");
     Ok(())
 
 }

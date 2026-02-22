@@ -27,7 +27,7 @@ pub fn set_systemd_proxlb(action: &str) -> Result<(), Box<dyn std::error::Error>
         .output()?;
 
     if output.status.success() {
-        info!("✓ ProxLB got signal to {}", action);
+        debug!("✓ ProxLB got signal to {}", action);
         Ok(())
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr);
