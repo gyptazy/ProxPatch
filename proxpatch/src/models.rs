@@ -4,6 +4,7 @@ use std::process::Command;
 #[derive(Debug, Deserialize)]
 pub struct Config {
     pub ssh_user: String,
+    pub deactivate_proxlb: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]

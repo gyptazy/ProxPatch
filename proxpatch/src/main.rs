@@ -8,6 +8,7 @@ mod migrate;
 mod models;
 mod nodes;
 mod patch;
+mod utils_proxlb;
 mod version;
 mod vms;
 
@@ -25,6 +26,8 @@ use crate::models::MigrationPlan;
 use crate::patch::exec_reboot;
 use crate::patch::exec_upgrade;
 use crate::patch::val_reboot;
+use crate::utils_proxlb::is_package_proxlb_installed;
+use crate::utils_proxlb::set_systemd_proxlb;
 use log::{info, debug, warn, error};
 use models::{NodeWithVms};
 use nodes::get_nodes;
@@ -62,6 +65,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
     );
 
+    debug!("→ Processing ProxLB user config...");
+    let deactivate_proxlb = match config.as_ref() {
+        Some(c) => {
+            debug!("✓ ProxLB is not used or will be ignored.");
+            c.deactivate_proxlb
+        }
+        None => {
+            debug!("✓ ProxLB will be auto-detected and stopped during patching if installed.");
+            false
+        }
+    };
+
     let nodes = get_nodes()?;
     let mut cluster: HashMap<String, NodeWithVms> = HashMap::new();
 
@@ -98,6 +113,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let plans = calculate_migrations_for_node(&node_name, &cluster);
 
+        if is_package_proxlb_installed() && !deactivate_proxlb {
+            info!("→ ProxLB detected, stopping before patching…");
+            if is_package_proxlb_installed() {
+                set_systemd_proxlb("stop")?;
+            }
+        }
+
         for plan in plans {
             let from_ip = cluster
                 .get(&plan.from)
@@ -105,7 +127,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .unwrap_or(&plan.from);
 
             exec_migrate(user, from_ip, &plan.from, &plan.to, plan.vmid)?;
-
             apply_plan_to_cluster(&mut cluster, &plan);
         }
 
@@ -130,6 +151,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if !val_cluster_status()? {
             error!("Cluster unhealthy after reboot of {}", node_name);
             return Err(format!("Cluster unhealthy after reboot of {}", node_name).into());
+        }
+
+    }
+
+    if is_package_proxlb_installed() && !deactivate_proxlb {
+        info!("→ ProxLB detected, starting after patching…");
+        if is_package_proxlb_installed() {
+            set_systemd_proxlb("start")?;
         }
     }
 
