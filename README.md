@@ -87,7 +87,7 @@ You can also download and install the latest Debian package directly from the gy
 ## Configuration
 ProxPatch is designed to work out of the box with minimal setup. In most environments, **no configuration is required**.
 
-However, if you need to customize ProxPatch's behavior, you can create a configuration file at `/etc/proxpatch/config.yaml`. This file allows you to adjust several settings. Please see the [configuration documentation](https://github.com/gyptazy/proxpatch/main/docs/) for detailed information on available options and their effects.
+However, if you need to customize ProxPatch's behavior, you can create a configuration file at `/etc/proxpatch/config.yaml`. This file allows you to adjust several settings. Please see the [configuration documentation](https://github.com/gyptazy/ProxPatch/tree/main/docs) for detailed information on available options and their effects.
 
 ## Usage
 ProxPatch is designed to run fully automated rolling updates across your Proxmox VE cluster. To begin the rolling upgrade process, simply enable and start the provided systemd unit:
