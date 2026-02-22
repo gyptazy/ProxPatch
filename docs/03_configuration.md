@@ -21,6 +21,7 @@ You can optionally create a configuration file to use a different SSH user inste
 
 ```yaml /etc/proxpatch/proxpatch.yaml
 ssh_user: proxpatch
+deactivate_proxlb: true
 ```
 
 If ssh_user is defined:
@@ -49,7 +50,7 @@ Cmnd_Alias PROXPATCH_CMDS = \
 PROXPATCH ALL=(root) NOPASSWD: PROXPATCH_CMDS
 ```
 
-## Options
+## CLI Options
 | Setting      | Default  | Required | Description                      |
 | ------------ | -------- | -------- | -------------------------------- |
 | -d  | None     | No       | Run in debug mode      |

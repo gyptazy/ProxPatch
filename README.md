@@ -46,6 +46,7 @@ At its core, ProxPatch follows a simple philosophy:
 - Keep the cluster running at all times  
 - Make automation observable and debuggable  
 - Stay lightweight and dependency-free  
+- Play together with [ProxLB](https://github.com/gyptazy/ProxLB)
 
 ProxPatch is not a full lifecycle manager or HA replacement. Instead, it focuses on one job and does it well: **unattended and fully automated rolling patching of Proxmox nodes with minimal service disruption**.
 
@@ -58,6 +59,7 @@ ProxPatch is designed to run inside or alongside a Proxmox VE cluster and relies
     * Shared storage (e.g. Ceph, NFS) for live migration
 * SSH access to all cluster nodes (passwordless key-based authentication recommended)
 * `jq` on the machine running ProxPatch for JSON parsing
+* Optionally: [ProxLB](https://github.com/gyptazy/ProxLB)
 
 ## Installation
 To quickly get started with ProxPatch, you can install it directly from the official Debian repository. This is the recommended method for most users as it ensures you receive updates and security patches automatically.
