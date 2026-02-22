@@ -1,11 +1,32 @@
 # ProxPatch - An automated rolling patch manager for Proxmox clusters
-<img align="left" src="https://cdn.gyptazy.com/img/ProxPatch.jpg"/>
+<img align="left" src="https://cdn.gyptazy.com/img/ProxPatch_github.jpg"/>
 <br>
 
 <p float="center"><img src="https://img.shields.io/github/license/gyptazy/ProxPatch"/><img src="https://img.shields.io/github/contributors/gyptazy/ProxPatch"/><img src="https://img.shields.io/github/last-commit/gyptazy/ProxPatch/main"/><img src="https://img.shields.io/github/issues-raw/gyptazy/ProxPatch"/><img src="https://img.shields.io/github/issues-pr/gyptazy/ProxPatch"/></p>
 
 
-# WORK IN PROGRESS - DO NOT USE IN PROD YET!!
+---
+
+# Table of Contents
+
+- [Overview](#overview)
+- [Requirements](#requirements)
+- [Architecture](#architecture)
+  - [Flow Chart](#flow-chart)
+  - [Execution Flow](#execution-flow)
+- [Installation](#installation)
+  - [Debian Repository](#debian-repository)
+  - [Debian Packages](#debian-packages)
+- [Configuration](#configuration)
+  - [CLI Options](#cli-options)
+- [Usage](#usage)
+- [Building from Source](#building-from-source)
+- [Roadmap](#roadmap)
+- [Community & Support](#community--support)
+- [Author](#author)
+- [Disclaimer](#disclaimer)
+
+---
 
 **ProxPatch** (written by [gyptazy](https://gyptazy.com/proxpatch/)) is a lightweight, automation-first patch orchestration tool for Proxmox VE clusters. It performs **rolling security updates** across nodes, safely migrates running VMs, reboots when required, and keeps cluster downtime to a minimum.
 
@@ -215,7 +236,22 @@ systemctl start proxpatch
 > ProxPatch must run on exactly one node per cluster.
 Do not enable or start the proxpatch service on multiple nodes simultaneously.
 
-## Building
+## Building from Source
+If you want to build ProxPatch from source, follow these steps:
+
+1. Clone the repository:
+```bash
+git clone https://github.com/gyptazy/ProxPatch.git
+cd ProxPatch/src
+```
+
+2. Build the project using Rust/Cargo:
+```bash
+cargo build
+```
+
+The compiled binary will be located in the `target/debug` directory. You can copy it to a Proxmox VE node for testing or production use.
+
 
 ## Community & Support
 
