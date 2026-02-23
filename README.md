@@ -54,6 +54,8 @@ ProxPatch is not a full lifecycle manager or HA replacement. Instead, it focuses
 ## ProxPatch Demo
 <img src="https://cdn.gyptazy.com/img/ProxPatch_demo.gif"/>
 
+*Note*: You can find this in better quality at [YouTube](https://www.youtube.com/watch?v=pdlf3xWHKrQ&lc).
+
 ## Requirements 
 ProxPatch is designed to run inside or alongside a Proxmox VE cluster and relies only on native tooling already present on most installations.
 
