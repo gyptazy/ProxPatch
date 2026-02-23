@@ -1,5 +1,5 @@
-proxpatch (0.5.0) stable; urgency=medium
+proxpatch (0.1.0) stable; urgency=medium
 
-  * Initial release of ProxSnap.
+  * Initial release of ProxPatch.
 
- -- Florian Paul Azim Hoberg <gyptazy@gyptazy.com>  Fri, 20 Feb 2026 206:09:34 +0001
+ -- Florian Paul Azim Hoberg <gyptazy@gyptazy.com>  Mon, 23 Feb 2026 08:13:34 +0001

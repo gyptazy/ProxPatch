@@ -1,0 +1,12 @@
+[Unit]
+Description=ProxPatch - An automated rolling patch manager for Proxmox clusters
+After=network-online.target pveproxy.service
+Wants=network-online.target pveproxy.service
+
+[Service]
+ExecStart=/usr/bin/proxpatch -c /etc/proxpatch/proxpatch.yaml
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target

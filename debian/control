@@ -8,6 +8,6 @@ Rules-Requires-Root: no
 
 Package: proxpatch
 Architecture: amd64
-Depends: ${misc:Depends}, sudo, jq
+Depends: ${misc:Depends}, jq
 Description: An automated rolling patch manager for Proxmox clusters
  ProxPatch is a Rust based tool for Proxmox VE clusters that provides an automated rolling patch management for Proxmox clusters.
