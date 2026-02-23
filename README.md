@@ -14,6 +14,7 @@
 # Table of Contents
 
 - [Overview](#overview)
+- [Demo](#demo)
 - [Requirements](#requirements)
 - [Installation](#installation)
   - [Debian Repository](#debian-repository)
@@ -49,6 +50,9 @@ At its core, ProxPatch follows a simple philosophy:
 - Play together with [ProxLB](https://github.com/gyptazy/ProxLB)
 
 ProxPatch is not a full lifecycle manager or HA replacement. Instead, it focuses on one job and does it well: **unattended and fully automated rolling patching of Proxmox nodes with minimal service disruption**.
+
+## ProxPatch Demo
+<img src="https://cdn.gyptazy.com/img/ProxPatch_demo.gif"/>
 
 ## Requirements 
 ProxPatch is designed to run inside or alongside a Proxmox VE cluster and relies only on native tooling already present on most installations.
