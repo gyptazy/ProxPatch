@@ -119,4 +119,6 @@ If you found a bug, want to request a feature, or suggest an improvement, please
 * [proxpatch.de](https://proxpatch.de)
 
 ## Disclaimer
-This software is provided “as is”, without warranty of any kind. Use it at your own risk. The authors and contributors are not liable for any damages resulting from its use.
+This software is provided “as is”, without warranty of any kind. Use it at your own risk. The authors and contributors are not liable for any damages resulting from its use. This project is in an early development stage and should be considered experimental. It is provided as-is and may contain bugs, incomplete features, or unexpected behavior.
+Do not use this software in production environments without thorough testing. You are strongly advised to evaluate and validate all functionality in isolated test labs or staging environments before deploying it anywhere else.
+The authors and contributors accept no responsibility or liability for any data loss, downtime, damage, or other issues that may arise from the use or misuse of this project. By using this software, you acknowledge that you do so entirely at your own risk.
