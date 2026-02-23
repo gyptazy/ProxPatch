@@ -4,7 +4,7 @@ After=network-online.target pveproxy.service
 Wants=network-online.target pveproxy.service
 
 [Service]
-ExecStart=/usr/bin/proxpatch -c /etc/proxpatch/proxpatch.yaml
+ExecStart=/usr/bin/proxpatch
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process
 
