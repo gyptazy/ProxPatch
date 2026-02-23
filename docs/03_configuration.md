@@ -55,3 +55,13 @@ PROXPATCH ALL=(root) NOPASSWD: PROXPATCH_CMDS
 | ------------ | -------- | -------- | -------------------------------- |
 | -d  | None     | No       | Run in debug mode      |
 | -c    | None     | No       | Define custom configuration file path    |
+
+
+## Enable Debug Mode
+To enable debug mode, run ProxPatch with the `-d` flag. This will provide more detailed output for troubleshooting and monitoring the patching process. When using systemd, you need to adjust the unit file `/var/lib/systemd/system/proxpatch.service` to:
+
+```
+[Service]
+ExecStart=/usr/bin/proxpatch -d
+```
+
