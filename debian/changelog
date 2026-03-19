@@ -1,3 +1,9 @@
+proxpatch (0.1.2) stable; urgency=medium
+
+  * Adjust systemd unit file to not load config file.
+
+ -- Florian Paul Azim Hoberg <gyptazy@gyptazy.com>  Thu, 19 Mar 2026 06:49:34 +0001
+
 proxpatch (0.1.0) stable; urgency=medium
 
   * Initial release of ProxPatch.
