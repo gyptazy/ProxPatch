@@ -1,3 +1,9 @@
+proxpatch (0.1.3) stable; urgency=medium
+
+  * Fix logger reinitialization within the loop. [Fixes #10]
+
+ -- Florian Paul Azim Hoberg <gyptazy@gyptazy.com>  Mon, 23 Mar 2026 09:01:57 +0001
+
 proxpatch (0.1.2) stable; urgency=medium
 
   * Adjust systemd unit file to not load config file.
