@@ -10,8 +10,8 @@ pub struct Config {
 #[derive(Debug, Deserialize, Clone)]
 pub struct NodeResources {
     pub node: String,
-    pub mem: u64,
-    pub maxmem: u64,
+    pub mem: Option<u64>,
+    pub maxmem: Option<u64>,
     pub ip: Option<String>,
     #[serde(default)]
     pub reboot_required: bool,
