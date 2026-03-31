@@ -38,12 +38,14 @@ use version::VERSION;
 use vms::get_running_vms;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let cli = Cli::parse();
+    logging::init(cli.debug)?;
     let interval = Duration::from_secs(60 * 60 * 6);
     let interval_hours = interval.as_secs() / 3600;
 
     loop {
         info!("→ Starting scheduled ProxPatch run");
-        if let Err(e) = run_proxpatch() {
+        if let Err(e) = run_proxpatch(&cli) {
             error!("Run failed: {}", e);
         }
 
@@ -52,12 +54,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 }
 
-fn run_proxpatch() -> Result<(), Box<dyn std::error::Error>> {
-    let cli = Cli::parse();
-
-    logging::init(cli.debug)?;
+fn run_proxpatch(cli: &Cli) -> Result<(), Box<dyn std::error::Error>> {
     info!("→ Starting ProxPatch v{}... (https://gyptazy.com/proxpatch/)", VERSION);
-
     test_pkg_jq();
 
     debug!("→ Validating for custom config file...");
