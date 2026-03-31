@@ -10,7 +10,9 @@ pub struct Config {
 #[derive(Debug, Deserialize, Clone)]
 pub struct NodeResources {
     pub node: String,
+    #[serde(default)]
     pub mem: u64,
+    #[serde(default)]
     pub maxmem: u64,
     pub ip: Option<String>,
     #[serde(default)]

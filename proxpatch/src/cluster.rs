@@ -23,6 +23,9 @@ pub enum PveResource {
 
     #[serde(rename = "sdn")]
     Sdn {},
+
+    #[serde(other)]
+    Unknown,
 }
 
 pub fn val_cluster_status() -> Result<bool, Box<dyn std::error::Error>> {
