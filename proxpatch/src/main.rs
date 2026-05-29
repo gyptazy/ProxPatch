@@ -97,10 +97,16 @@ fn run_proxpatch(cli: &Cli) -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
+    let excluded_nodes: &[String] = config.as_ref().map(|c| c.excluded_nodes.as_slice()).unwrap_or(&[]);
     let nodes = get_nodes()?;
     let mut cluster: HashMap<String, NodeWithVms> = HashMap::new();
 
     for node in nodes {
+        if excluded_nodes.contains(&node.node) {
+            info!("→ Skipping excluded node: {}", node.node);
+            continue;
+        }
+
         let node_name = node.node.clone();
         let vms = get_running_vms(&node_name)?;
 

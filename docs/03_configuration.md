@@ -22,7 +22,12 @@ You can optionally create a configuration file to use a different SSH user inste
 ```yaml /etc/proxpatch/proxpatch.yaml
 ssh_user: proxpatch
 deactivate_proxlb: true
+excluded_nodes:
+  - node01
+  - node02
 ```
+
+All config keys are optional. If they are omitted, ProxPatch uses the same defaults as when no config file is present.
 
 If ssh_user is defined:
 * ProxPatch will SSH into other nodes using that user
@@ -31,6 +36,10 @@ If ssh_user is defined:
 The user must have:
 * Passwordless sudo privileges
 * Be able to SSH to all cluster node
+
+If excluded_nodes is defined:
+* ProxPatch will completely ignore those cluster nodes
+* Excluded nodes will not be patched, rebooted, inspected for running VMs, or used as migration targets
 
 Example suodoers entry for a custom user named `proxpatch`:
 
@@ -64,4 +73,3 @@ To enable debug mode, run ProxPatch with the `-d` flag. This will provide more d
 [Service]
 ExecStart=/usr/bin/proxpatch -d
 ```
-
