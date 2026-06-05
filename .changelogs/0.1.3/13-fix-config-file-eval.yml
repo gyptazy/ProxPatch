@@ -1,0 +1,2 @@
+fixed:
+  - Fix the optional evaluation of the config file (@gyptazy). [#13]

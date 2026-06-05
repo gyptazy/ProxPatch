@@ -27,6 +27,22 @@ excluded_nodes:
   - node02
 ```
 
+Also make sure to adjust the `systemd` unit file to load the config file by setting this line:
+```yaml /etc/systemd/system/proxpatch.service
+[Unit]
+Description=ProxPatch - An automated rolling patch manager for Proxmox clusters
+After=network-online.target pveproxy.service
+Wants=network-online.target pveproxy.service
+
+[Service]
+ExecStart=/usr/bin/proxpatch -c /etc/proxpatch/proxpatch.yaml
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
+```
+
 All config keys are optional. If they are omitted, ProxPatch uses the same defaults as when no config file is present.
 
 If ssh_user is defined:

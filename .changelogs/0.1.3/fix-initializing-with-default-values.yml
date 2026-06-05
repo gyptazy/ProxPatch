@@ -1,0 +1,2 @@
+fixed:
+  - Fix variable initialization with defaults vars (@gyptazy).

@@ -1,8 +1,12 @@
 proxpatch (0.1.3) stable; urgency=medium
 
-  * Fix logger reinitialization within the loop. [Fixes #10]
+  * Allow exclusion of nodes from being patched (@gyptazy). [#14]
+  * Fix logger reinitialization in loop causing crash of ProxPatch (@gyptazy). [#10]
+  * Fix unknown variant issue from undefined items in PVE resources (@gyptazy). [#12]
+  * Fix the optional evaluation of the config file (@gyptazy). [#13]
+  * Fix variable initialization with defaults vars (@gyptazy).
 
- -- Florian Paul Azim Hoberg <gyptazy@gyptazy.com>  Mon, 23 Mar 2026 09:01:57 +0001
+ -- Florian Paul Azim Hoberg <gyptazy@gyptazy.com>  Mon, 8 Jun 2026 07:01:57 +0001
 
 proxpatch (0.1.2) stable; urgency=medium
 
