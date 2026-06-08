@@ -1,0 +1,2 @@
+fixed:
+  - Fix unknown variant issue from undefined items in PVE resources (@gyptazy). [#12]

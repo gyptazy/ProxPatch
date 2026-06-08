@@ -1,0 +1,2 @@
+fixed:
+  - Fix logger reinitialization in loop causing crash of ProxPatch (@gyptazy). [#10]
