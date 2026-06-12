@@ -184,8 +184,6 @@ fn run_proxpatch(cli: &Cli) -> Result<(), Box<dyn std::error::Error>> {
             return Err(format!("Cluster unhealthy after reboot of {}", node_name).into());
         }
 
-
-
     }
 
     if is_package_proxlb_installed() && !deactivate_proxlb {
