@@ -26,6 +26,8 @@ use crate::models::MigrationPlan;
 use crate::patch::exec_reboot;
 use crate::patch::exec_upgrade;
 use crate::patch::val_reboot;
+use crate::patch::exec_enable_maintenance;
+use crate::patch::exec_disable_maintenance;
 use crate::utils_proxlb::is_package_proxlb_installed;
 use crate::utils_proxlb::set_systemd_proxlb;
 use log::{info, debug, warn, error};
@@ -161,13 +163,16 @@ fn run_proxpatch(cli: &Cli) -> Result<(), Box<dyn std::error::Error>> {
             return Err(format!("Cluster unhealthy. Not rebooting {}", node_name).into());
         }
 
-        let ssh_target = cluster
-            .get(&node_name)
-            .and_then(|d| d.resources.ip.as_deref())
-            .unwrap_or(&node_name);
+        let ssh_target = cluster.get(&node_name).and_then(|d| d.resources.ip.as_deref()).unwrap_or(&node_name);
+
+        exec_enable_maintenance(user, ssh_target, &node_name)?;
+        std::thread::sleep(std::time::Duration::from_secs(30));
 
         exec_reboot(user, ssh_target)?;
         std::thread::sleep(std::time::Duration::from_secs(120));
+
+        exec_disable_maintenance(user, ssh_target, &node_name)?;
+        std::thread::sleep(std::time::Duration::from_secs(30));
 
         if !wait_for_node_online(&node_name, 30)? {
             error!("Node {} did not come back online in time", node_name);
@@ -178,6 +183,8 @@ fn run_proxpatch(cli: &Cli) -> Result<(), Box<dyn std::error::Error>> {
             error!("Cluster unhealthy after reboot of {}", node_name);
             return Err(format!("Cluster unhealthy after reboot of {}", node_name).into());
         }
+
+
 
     }
 
