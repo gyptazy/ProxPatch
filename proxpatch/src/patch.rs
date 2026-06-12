@@ -80,3 +80,59 @@ pub fn val_reboot(user: &str,node: &str) -> Result<bool, Box<dyn std::error::Err
 
     Ok(reboot_required)
 }
+
+pub fn exec_enable_maintenance(user: &str, node: &str, node_name: &str) -> Result<(), Box<dyn std::error::Error>> {
+    debug!("→ Setting node {} into maintenance mode.", node_name);
+    let remote_cmd = if user == "root" {
+        format!("ha-manager crm-command node-maintenance enable {}", node_name)
+    } else {
+        format!("sudo ha-manager crm-command node-maintenance enable {}", node_name)
+    };
+
+    let output = Command::new("ssh")
+        .args([
+            "-o", "StrictHostKeyChecking=accept-new",
+            "-o", "BatchMode=yes",
+            &format!("{}@{}", user, node),
+            &remote_cmd,
+        ])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .output()?;
+
+    if !output.status.success() {
+        error!("✗ Unable to set node {} into maintenance mode.", node_name);
+    } else {
+        info!("✓ Node {} is now in maintenance mode.", node_name);
+    }
+
+    Ok(())
+}
+
+pub fn exec_disable_maintenance(user: &str, node: &str, node_name: &str) -> Result<(), Box<dyn std::error::Error>> {
+    debug!("→ Disabling maintenance mode on node {}.", node_name);
+    let remote_cmd = if user == "root" {
+        format!("ha-manager crm-command node-maintenance disable {}", node_name)
+    } else {
+        format!("sudo ha-manager crm-command node-maintenance disable {}", node_name)
+    };
+
+    let output = Command::new("ssh")
+        .args([
+            "-o", "StrictHostKeyChecking=accept-new",
+            "-o", "BatchMode=yes",
+            &format!("{}@{}", user, node),
+            &remote_cmd,
+        ])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .output()?;
+
+    if !output.status.success() {
+        error!("✗ Unable to disable maintenance mode on node {}.", node_name);
+    } else {
+        info!("✓ Maintenance mode disabled on node {}.", node_name);
+    }
+
+    Ok(())
+}
