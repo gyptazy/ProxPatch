@@ -1,0 +1,2 @@
+added:
+  - Automatically remove obsolete packages and clean the APT cache after patching a node (@gyptazy).
