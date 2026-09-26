@@ -4,9 +4,13 @@ use log::{info, debug, warn, error};
 pub fn exec_upgrade(user: &str, node: &str) -> Result<(), Box<dyn std::error::Error>> {
     debug!("→ Starting upgrade on node: {}", node);
     let remote_cmd = if user == "root" {
-        String::from("apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade")
+        String::from(
+            "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade && apt -y autoremove && apt clean",
+        )
     } else {
-        String::from("sudo apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade")
+        String::from(
+            "sudo apt-get update && sudo env DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade && sudo apt -y autoremove && sudo apt clean",
+        )
     };
 
     let output = Command::new("ssh")
