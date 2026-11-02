@@ -13,4 +13,7 @@ pub struct Cli {
 
     #[arg(short = 'd', long, help = "Run ProxPatch in debug mode")]
     pub debug: bool,
+
+    #[arg(short = 'p', long, help = "Immediately patch all nodes in the cluster (current node is patched last)")]
+    pub patch_now: bool,
 }
