@@ -40,9 +40,24 @@ use std::time::Duration;
 use version::VERSION;
 use vms::get_running_vms;
 
+fn get_local_hostname() -> Option<String> {
+    let output = std::process::Command::new("hostname").output().ok()?;
+    let name = String::from_utf8(output.stdout).ok()?;
+    Some(name.trim().to_string())
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     logging::init(cli.debug)?;
+
+    if cli.patch_now {
+        info!("→ Starting immediate ProxPatch run (--patch-now)");
+        if let Err(e) = run_proxpatch(&cli) {
+            error!("Run failed: {}", e);
+        }
+        return Ok(());
+    }
+
     let interval = Duration::from_secs(60 * 60 * 6);
     let interval_hours = interval.as_secs() / 3600;
 
@@ -127,7 +142,18 @@ fn run_proxpatch(cli: &Cli) -> Result<(), Box<dyn std::error::Error>> {
         data.resources.reboot_required = val_reboot(user, ssh_target)?;
     }
 
-    let node_order: Vec<String> = cluster.keys().cloned().collect();
+    let mut node_order: Vec<String> = cluster.keys().cloned().collect();
+
+    if cli.patch_now {
+        if let Some(local) = get_local_hostname() {
+            debug!("→ --patch-now: local node is '{}', will be patched last", local);
+            if let Some(pos) = node_order.iter().position(|n| n == &local) {
+                let local_node = node_order.remove(pos);
+                node_order.push(local_node);
+                info!("→ Node '{}' (local) moved to end of patch order", local);
+            }
+        }
+    }
 
     for node_name in node_order {
         let reboot_required = cluster
@@ -169,15 +195,23 @@ fn run_proxpatch(cli: &Cli) -> Result<(), Box<dyn std::error::Error>> {
         std::thread::sleep(std::time::Duration::from_secs(30));
 
         exec_reboot(user, ssh_target)?;
-        std::thread::sleep(std::time::Duration::from_secs(120));
+
+        if cli.patch_now {
+            info!("→ Waiting for node {} to come back online...", node_name);
+            if !wait_for_node_online(&node_name, 1800)? {
+                error!("Node {} did not come back online in time", node_name);
+                return Err(format!("Node {} failed to rejoin cluster", node_name).into());
+            }
+        } else {
+            std::thread::sleep(std::time::Duration::from_secs(120));
+            if !wait_for_node_online(&node_name, 30)? {
+                error!("Node {} did not come back online in time", node_name);
+                return Err(format!("Node {} failed to rejoin cluster", node_name).into());
+            }
+        }
 
         exec_disable_maintenance(user, ssh_target, &node_name)?;
         std::thread::sleep(std::time::Duration::from_secs(30));
-
-        if !wait_for_node_online(&node_name, 30)? {
-            error!("Node {} did not come back online in time", node_name);
-            return Err(format!("Node {} failed to rejoin cluster", node_name).into());
-        }
 
         if !val_cluster_status()? {
             error!("Cluster unhealthy after reboot of {}", node_name);
