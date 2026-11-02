@@ -8,6 +8,7 @@ mod migrate;
 mod models;
 mod nodes;
 mod patch;
+mod utils_ceph;
 mod utils_proxlb;
 mod version;
 mod vms;
@@ -28,6 +29,9 @@ use crate::patch::exec_upgrade;
 use crate::patch::val_reboot;
 use crate::patch::exec_enable_maintenance;
 use crate::patch::exec_disable_maintenance;
+use crate::utils_ceph::exec_enable_ceph_maintenance;
+use crate::utils_ceph::exec_disable_ceph_maintenance;
+use crate::utils_ceph::exec_check_ceph_mon_ok_to_stop;
 use crate::utils_proxlb::is_package_proxlb_installed;
 use crate::utils_proxlb::set_systemd_proxlb;
 use log::{info, debug, warn, error};
@@ -165,14 +169,15 @@ fn run_proxpatch(cli: &Cli) -> Result<(), Box<dyn std::error::Error>> {
 
         let ssh_target = cluster.get(&node_name).and_then(|d| d.resources.ip.as_deref()).unwrap_or(&node_name);
 
+        exec_check_ceph_mon_ok_to_stop(user, ssh_target, &node_name)?;
+        exec_enable_ceph_maintenance(user, ssh_target, &node_name)?;
         exec_enable_maintenance(user, ssh_target, &node_name)?;
-        std::thread::sleep(std::time::Duration::from_secs(30));
-
+        std::thread::sleep(std::time::Duration::from_secs(60));
         exec_reboot(user, ssh_target)?;
-        std::thread::sleep(std::time::Duration::from_secs(120));
-
+        std::thread::sleep(std::time::Duration::from_secs(240));
         exec_disable_maintenance(user, ssh_target, &node_name)?;
-        std::thread::sleep(std::time::Duration::from_secs(30));
+        exec_disable_ceph_maintenance(user, ssh_target, &node_name)?;
+        std::thread::sleep(std::time::Duration::from_secs(60));
 
         if !wait_for_node_online(&node_name, 30)? {
             error!("Node {} did not come back online in time", node_name);
