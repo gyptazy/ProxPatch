@@ -21,6 +21,7 @@
   - [Debian Packages](#debian-packages)
 - [Configuration](#configuration)
 - [Usage](#usage)
+- [How it Worsk](#howitworks)
 - [Community & Support](#community--support)
 - [Author](#author)
 - [Disclaimer](#disclaimer)
@@ -103,6 +104,87 @@ ProxPatch is designed to run fully automated rolling updates across your Proxmox
 ```bash
 systemctl enable proxpatch
 systemctl start proxpatch
+```
+
+## How it Works
+
+Each cycle runs four sequential phases:
+
+### Phase 1 — Cluster Assessment
+
+ProxPatch calls `pvesh get /cluster/resources` to discover all nodes and their running VMs, then collects memory usage, IP addresses, and VM states. The result is an in-memory map of the entire cluster.
+
+### Phase 2 — Apply Updates
+
+For each node, ProxPatch SSHs in and runs:
+```
+apt-get update && apt-get dist-upgrade -y
+```
+It then checks for `/var/run/reboot-required` to determine whether a reboot is needed. Nodes that don't need a reboot are done after this phase.
+
+### Phase 3 — Controlled Reboot (if required)
+
+For each node flagged for reboot, ProxPatch:
+
+1. Validates cluster health (all nodes online)
+2. Calculates a migration plan — which VMs to move and where
+3. Stops ProxLB (if running) to prevent interference
+4. Live-migrates all VMs off the node
+5. Enables HA maintenance mode on the node
+6. Reboots the node via SSH
+7. Waits for the node to come back online (polls for up to 150 seconds)
+8. Disables HA maintenance mode
+9. Validates cluster health before moving to the next node
+
+After all reboots complete, ProxLB is restarted if it was running.
+
+### Phase 4 — Wait
+
+ProxPatch sleeps for 6 hours before starting the next cycle.
+
+### Flow Diagram
+
+```mermaid
+flowchart TD
+    A([Start]) --> B[Load config & parse CLI args]
+    B --> C[Discover cluster nodes via pvesh]
+    C --> D[Collect node IPs, VMs, and memory metrics]
+    D --> E{For each node}
+
+    E --> F[SSH: apt-get update && dist-upgrade]
+    F --> G{/var/run/reboot-required exists?}
+    G -- No --> H[Node done — no reboot needed]
+    G -- Yes --> I[Mark node: reboot_required = true]
+    H --> E
+    I --> E
+
+    E -- All nodes assessed --> J{Any node needs reboot?}
+    J -- No --> Z
+
+    J -- Yes --> K{For each reboot-required node}
+    K --> L[Validate cluster health]
+    L --> M{Cluster healthy?}
+    M -- No --> ERR[Abort cycle — log error]
+    M -- Yes --> N[Calculate VM migration plan]
+
+    N --> O{ProxLB running?}
+    O -- Yes --> P[Stop ProxLB]
+    O -- No --> Q
+    P --> Q[Live-migrate all VMs off node]
+
+    Q --> R[Enable HA maintenance mode]
+    R --> S[SSH: reboot node]
+    S --> T[Wait 120s for reboot]
+    T --> U[Poll for node online\nmax 30 × 5s attempts]
+    U --> V[Disable HA maintenance mode]
+    V --> W[Validate cluster health]
+    W --> K
+
+    K -- All reboots done --> X{ProxLB was running?}
+    X -- Yes --> Y[Restart ProxLB]
+    X -- No --> Z
+    Y --> Z[Sleep 6 hours]
+    Z --> C
 ```
 
 ## Community & Support
